@@ -948,6 +948,18 @@ bool ScriptMgr::OnGossipHello(Player* pPlayer, GameObject* pGameObject)
     return pTempScript->pGOGossipHello(pPlayer, pGameObject);
 }
 
+bool ScriptMgr::OnGossipHello(Player* pPlayer, Item* item)
+{
+   Script* pTempScript = m_scripts[item->GetProto()->ScriptId];
+
+   if (!pTempScript || !pTempScript->pItemGossipHello)
+       return false;
+
+   pPlayer->PlayerTalkClass->ClearMenus();
+
+   return pTempScript->pItemGossipHello(pPlayer, item);
+}
+
 bool ScriptMgr::OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 sender, uint32 action, const char* code)
 {
     sLog.outDebug("Gossip selection%s, sender: %d, action: %d", code ? " with code" : "", sender, action);
@@ -998,6 +1010,31 @@ bool ScriptMgr::OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 
     }
 
     return false;
+}
+
+bool ScriptMgr::OnGossipSelect(Player* pPlayer, Item* item, uint32 sender, uint32 action, const char* code)
+{
+   sLog.outDebug("Gossip selection%s, sender: %d, action: %d", code ? " with code" : "", sender, action);
+
+   Script* pTempScript = m_scripts[item->GetProto()->ScriptId];
+
+   if (code)
+   {
+       if (pTempScript && pTempScript->pItemGossipSelectWithCode)
+       {
+           pPlayer->PlayerTalkClass->ClearMenus();
+           return pTempScript->pItemGossipSelectWithCode(pPlayer, item, sender, action, code);
+       }
+   }
+   else
+   {
+       if (pTempScript && pTempScript->pItemGossipSelect)
+       {
+           pPlayer->PlayerTalkClass->ClearMenus();
+           return pTempScript->pItemGossipSelect(pPlayer, item, sender, action);
+       }
+   }
+   return false;
 }
 
 bool ScriptMgr::OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const* pQuest)

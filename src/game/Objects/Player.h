@@ -43,6 +43,7 @@
 #include "SharedDefines.h"
 #include "SpellMgr.h"
 #include "HonorMgr.h"
+#include "Chat.h"
 
 #include <string>
 #include <vector>
@@ -2140,6 +2141,8 @@ class MANGOS_DLL_SPEC Player final: public Unit
         PlayerTaxi const& GetTaxi() const { return m_taxi; }
         uint32 GetHomeBindMap() const { return m_homebindMapId; }
         uint16 GetHomeBindAreaId() const { return m_homebindAreaId; }
+       void SendMsgHint(std::string msg, bool posstive = true);
+       void SendErrorMsgHint(std::string msg);
 
     protected:
         uint32 m_contestedPvPTimer;

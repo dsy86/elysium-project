@@ -32,6 +32,7 @@ class Bag;
 class Field;
 class QueryResult;
 class Unit;
+class Stone;
 
 struct ItemSetEffect
 {
@@ -273,6 +274,9 @@ class MANGOS_DLL_SPEC Item : public Object
         }
 
         bool IsBag() const { return GetProto()->InventoryType == INVTYPE_BAG; }
+        bool IsStone() const { return GetProto()->IsStone(); }
+        Stone* ToStone() { if (IsStone()) return (Stone*)this; else return nullptr; }
+        const Stone* ToStone() const { if (IsStone()) return (Stone*)this; else return nullptr; }
         bool IsBroken() const { return GetUInt32Value(ITEM_FIELD_MAXDURABILITY) > 0 && GetUInt32Value(ITEM_FIELD_DURABILITY) == 0; }
         bool CanBeTraded() const;
         void SetInTrade(bool b = true) { mb_in_trade = b; }

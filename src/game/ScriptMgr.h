@@ -460,8 +460,8 @@ struct TSpellSummary
 struct Script
 {
     Script() :
-        Name(""), pGossipHello(nullptr), pGOGossipHello(nullptr), pQuestAcceptNPC(nullptr),
-        pGossipSelect(nullptr), pGOGossipSelect(nullptr),
+        Name(""), pGossipHello(nullptr), pGOGossipHello(nullptr), pItemGossipHello(nullptr), pQuestAcceptNPC(nullptr),
+        pGossipSelect(nullptr), pGOGossipSelect(nullptr), pItemGossipSelect(nullptr),
         pGossipSelectWithCode(nullptr), pGOGossipSelectWithCode(nullptr), pQuestComplete(nullptr),
         pNPCDialogStatus(nullptr), pGODialogStatus(nullptr), pQuestRewardedNPC(nullptr), pQuestRewardedGO(nullptr), pItemHello(nullptr), pGOHello(nullptr), pAreaTrigger(nullptr),
         pProcessEventId(nullptr), pItemQuestAccept(nullptr), pGOQuestAccept(nullptr),
@@ -475,11 +475,14 @@ struct Script
     //Methods to be scripted
     bool (*pGossipHello             )(Player*, Creature*);
     bool (*pGOGossipHello           )(Player*, GameObject*);
+    bool (*pItemGossipHello         )(Player*, Item*);
     bool (*pQuestAcceptNPC          )(Player*, Creature*, Quest const*);
     bool (*pGossipSelect            )(Player*, Creature*, uint32, uint32);
     bool (*pGOGossipSelect          )(Player*, GameObject*, uint32, uint32);
+    bool (*pItemGossipSelect        )(Player*, Item*, uint32, uint32);
     bool (*pGossipSelectWithCode    )(Player*, Creature*, uint32, uint32, const char*);
     bool (*pGOGossipSelectWithCode  )(Player*, GameObject*, uint32, uint32, const char*);
+    bool (*pItemGossipSelectWithCode)(Player*, Item*, uint32, uint32, const char*);
 //    bool (*pQuestSelect             )(Player*, Creature*, const Quest*);
     bool (*pQuestComplete           )(Player*, Creature*, const Quest*);
     uint32 (*pNPCDialogStatus       )(Player*, Creature*);
@@ -590,8 +593,10 @@ class ScriptMgr
 
         bool OnGossipHello(Player* pPlayer, Creature* pCreature);
         bool OnGossipHello(Player* pPlayer, GameObject* pGameObject);
+        bool OnGossipHello(Player* pPlayer, Item* item);
         bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 sender, uint32 action, const char* code);
         bool OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action, const char* code);
+        bool OnGossipSelect(Player* pPlayer, Item* item, uint32 sender, uint32 action, const char* code);
         bool OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
         bool OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
         bool OnQuestAccept(Player* pPlayer, Item* pItem, Quest const* pQuest);

@@ -302,9 +302,9 @@ void Item::SaveToDB()
             static SqlStatementID updItem;
 
             SqlStatement stmt = (uState == ITEM_NEW) ?
-                                CharacterDatabase.CreateStatement(insItem, "REPLACE INTO item_instance (itemEntry, owner_guid, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, text, guid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                                CharacterDatabase.CreateStatement(insItem, "REPLACE INTO item_instance (itemEntry, owner_guid, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, text, stoneLevel, stoneGrade, guid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                                 :
-                                CharacterDatabase.CreateStatement(updItem, "UPDATE item_instance SET itemEntry = ?, owner_guid = ?, creatorGuid = ?, giftCreatorGuid = ?, count = ?, duration = ?, charges = ?, flags = ?, enchantments = ?, randomPropertyId = ?, durability = ?, text = ? WHERE guid = ?");
+                                CharacterDatabase.CreateStatement(updItem, "UPDATE item_instance SET itemEntry = ?, owner_guid = ?, creatorGuid = ?, giftCreatorGuid = ?, count = ?, duration = ?, charges = ?, flags = ?, enchantments = ?, randomPropertyId = ?, durability = ?, text = ?, stoneLevel = ?, stoneGrade = ? WHERE guid = ?");
             stmt.addUInt32(GetEntry());
             stmt.addUInt32(GetOwnerGuid().GetCounter());
             stmt.addUInt32(GetGuidValue(ITEM_FIELD_CREATOR).GetCounter());
@@ -331,6 +331,15 @@ void Item::SaveToDB()
             stmt.addUInt16(GetItemRandomPropertyId());
             stmt.addUInt16(GetUInt32Value(ITEM_FIELD_DURABILITY));
             stmt.addUInt32(GetUInt32Value(ITEM_FIELD_ITEM_TEXT_ID));
+            uint32 stoneLevel = 0;
+            uint32 stoneGrade = 0;
+            if (IsStone())
+            {
+                stoneLevel = ToStone()->GetLevel();
+                stoneGrade = ToStone()->GetGrade();
+            }
+            stmt.addUInt32(stoneLevel);
+            stmt.addUInt32(stoneGrade);
             stmt.addUInt32(guid);
             stmt.Execute();
         }

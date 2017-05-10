@@ -46,6 +46,7 @@ set (SCRIPTS_SRCS
 	custom/npc_escort.cpp
 	custom/npc_gobj_spawner.cpp
 	custom/zero_creatures.cpp
+	custom/stone_script.cpp
 	eastern_kingdoms/alterac_mountains/alterac_mountains.cpp
 	eastern_kingdoms/arathi_highlands/arathi_highlands.cpp
 	eastern_kingdoms/blasted_lands/blasted_lands.cpp
@@ -323,6 +324,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/game/Chat
   ${CMAKE_SOURCE_DIR}/src/game/Commands
   ${CMAKE_SOURCE_DIR}/src/game/Database
+  ${CMAKE_SOURCE_DIR}/src/game/Dsy
   ${CMAKE_SOURCE_DIR}/src/game/Group
   ${CMAKE_SOURCE_DIR}/src/game/Guild
   ${CMAKE_SOURCE_DIR}/src/game/Handlers

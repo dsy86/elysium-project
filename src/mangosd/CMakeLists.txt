@@ -61,6 +61,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/game/Chat
   ${CMAKE_SOURCE_DIR}/src/game/Commands
   ${CMAKE_SOURCE_DIR}/src/game/Database
+  ${CMAKE_SOURCE_DIR}/src/game/Dsy
   ${CMAKE_SOURCE_DIR}/src/game/Group
   ${CMAKE_SOURCE_DIR}/src/game/Guild
   ${CMAKE_SOURCE_DIR}/src/game/Handlers

@@ -25,6 +25,7 @@
 #include "Common.h"
 #include "ItemPrototype.h"
 #include "Item.h"
+#include "Stone.h"
 
 // Maximum 28 Slots ( (CONTAINER_END - CONTAINER_FIELD_SLOT_1)/2
 #define MAX_BAG_SIZE 28                                     // 1.12
@@ -78,6 +79,8 @@ class Bag : public Item
 
 inline Item* NewItemOrBag(ItemPrototype const* proto)
 {
+    if (proto->IsStone())
+        return new Stone;
     if (proto->InventoryType == INVTYPE_BAG)
         return new Bag;
 

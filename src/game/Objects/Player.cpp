@@ -7008,6 +7008,49 @@ void Player::_RemoveAllItemMods()
         }
     }
 
+    for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
+    {
+        if (m_items[i])
+        {
+            ItemPrototype const *proto = m_items[i]->GetProto();
+            if (!proto)
+                continue;
+            if (!m_items[i]->IsStone())
+                continue;
+            m_items[i]->ToStone()->ApplyStoneStats(false, this);
+        }
+    }
+    for (int i = KEYRING_SLOT_START; i < KEYRING_SLOT_END; ++i)
+    {
+        if (m_items[i])
+        {
+            ItemPrototype const *proto = m_items[i]->GetProto();
+            if (!proto)
+                continue;
+            if (!m_items[i]->IsStone())
+                continue;
+            m_items[i]->ToStone()->ApplyStoneStats(false, this);
+        }
+    }
+    for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+    {
+        if (Bag* pBag = (Bag*)GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+        {
+            for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
+            {
+                if (m_items[j])
+                {
+                    ItemPrototype const *proto = m_items[j]->GetProto();
+                    if (!proto)
+                        continue;
+                    if (!m_items[j]->IsStone())
+                        continue;
+                    m_items[j]->ToStone()->ApplyStoneStats(false, this);
+                }
+            }
+        }
+    }
+
     DEBUG_LOG("_RemoveAllItemMods complete.");
 }
 
@@ -7054,6 +7097,49 @@ void Player::_ApplyAllItemMods()
 
             ApplyItemEquipSpell(m_items[i], true);
             ApplyEnchantment(m_items[i], true);
+        }
+    }
+
+    for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
+    {
+        if (m_items[i])
+        {
+            ItemPrototype const *proto = m_items[i]->GetProto();
+            if (!proto)
+                continue;
+            if (!m_items[i]->IsStone())
+                continue;
+            m_items[i]->ToStone()->ApplyStoneStats(true, this);
+        }
+    }
+    for (int i = KEYRING_SLOT_START; i < KEYRING_SLOT_END; ++i)
+    {
+        if (m_items[i])
+        {
+            ItemPrototype const *proto = m_items[i]->GetProto();
+            if (!proto)
+                continue;
+            if (!m_items[i]->IsStone())
+                continue;
+            m_items[i]->ToStone()->ApplyStoneStats(true, this);
+        }
+    }
+    for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+    {
+        if (Bag* pBag = (Bag*)GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+        {
+            for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
+            {
+                if (m_items[j])
+                {
+                    ItemPrototype const *proto = m_items[j]->GetProto();
+                    if (!proto)
+                        continue;
+                    if (!m_items[j]->IsStone())
+                        continue;
+                    m_items[j]->ToStone()->ApplyStoneStats(true, this);
+                }
+            }
         }
     }
 
@@ -9787,6 +9873,8 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
         if (randomPropertyId)
             pItem->SetItemRandomProperties(randomPropertyId);
         pItem = StoreItem(dest, pItem, update);
+        if (pItem->IsStone())
+            pItem->ToStone()->ApplyStoneStats(true, this);
     }
     return pItem;
 }
@@ -10241,6 +10329,10 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
         }
         else if (Bag *pBag = (Bag*)GetItemByPos(INVENTORY_SLOT_BAG_0, bag))
             pBag->RemoveItem(slot, update);
+
+        //删除时卸载护身符属性
+        if (pItem->IsStone())
+            pItem->ToStone()->ApplyStoneStats(false);
 
         if (IsInWorld() && update)
         {
@@ -14560,8 +14652,8 @@ void Player::LoadCorpse()
 
 void Player::_LoadInventory(QueryResult *result, uint32 timediff)
 {
-    //               0                1      2         3        4      5             6                 7           8     9    10    11   12    13
-    //SELECT creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, text, bag, slot, item, itemEntry
+    //               0                1      2         3        4      5             6                 7           8     9    10    11   12    13         14          15
+    //SELECT creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, text, bag, slot, item, itemEntry, stoneLevel, stoneGrade
     std::unordered_map<uint32, Bag*> bagMap;                          // fast guid lookup for bags
     //NOTE: the "order by `bag`" is important because it makes sure
     //the bagMap is filled before items in the bags are loaded

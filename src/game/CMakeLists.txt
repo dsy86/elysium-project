@@ -102,6 +102,8 @@ set (game_SRCS
 	Database/CharacterDatabaseCleaner.cpp
 	Database/DBCStores.cpp
 	Database/SQLStorages.cpp
+	Dsy/DsyMiscMgr.cpp
+	Dsy/Stone.cpp
 	Group/Group.cpp
 	Group/GroupReference.cpp
 	Guild/Guild.cpp
@@ -296,6 +298,8 @@ set (game_SRCS
 	Database/DBCStores.h
 	Database/DBCStructure.h
 	Database/SQLStorages.h
+	Dsy/DsyMiscMgr.h
+	Dsy/Stone.h
 	Group/Group.h
 	Group/GroupReference.h
 	Group/GroupRefManager.h
@@ -467,6 +471,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/CinematicStuff
   ${CMAKE_CURRENT_SOURCE_DIR}/Commands
   ${CMAKE_CURRENT_SOURCE_DIR}/Database
+  ${CMAKE_CURRENT_SOURCE_DIR}/Dsy
   ${CMAKE_CURRENT_SOURCE_DIR}/Group
   ${CMAKE_CURRENT_SOURCE_DIR}/Guild
   ${CMAKE_CURRENT_SOURCE_DIR}/Handlers
@@ -511,6 +516,13 @@ source_group("Object"
 
 source_group("World/Handlers"
   REGULAR_EXPRESSION Mgr|Handler|Manager|Cell|Channel|Chat|Gossip|Grid|Instance|Map|Path|Pool|Script|Skill|Transports|Update|Weather|World
+)
+
+source_group("Dsy"
+  REGULAR_EXPRESSION Dsy
+  FILES
+  	Stone.cpp
+  	Stone.h
 )
 
 source_group("Motion generators"

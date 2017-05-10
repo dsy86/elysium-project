@@ -389,4 +389,5 @@ bool IsIPAddress(char const* ipaddress);
 uint32 CreatePIDFile(const std::string& filename);
 
 void hexEncodeByteArray(uint8* bytes, uint32 arrayLen, std::string& result);
+const char* _StringToUTF8(const char*pASCIIBuf);
 #endif

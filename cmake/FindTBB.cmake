@@ -120,7 +120,8 @@ if(NOT TBB_FOUND)
   # Define the search directories based on the current platform
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(TBB_DEFAULT_SEARCH_DIR "C:/Program Files/Intel/TBB"
-                               "C:/Program Files (x86)/Intel/TBB")
+                               "C:/Program Files (x86)/Intel/TBB"
+                               "D:/tbb2017_20170226oss")
 
     # Set the target architecture
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)

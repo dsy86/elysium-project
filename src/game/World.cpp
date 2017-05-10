@@ -81,6 +81,7 @@
 #include "MovementBroadcaster.h"
 #include "HonorMgr.h"
 #include "Anticheat/Anticheat.h"
+#include "Stone.h"
 
 #include <chrono>
 
@@ -1592,6 +1593,10 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading spell group stack rules ...");
     sSpellMgr.LoadSpellGroupStackRules();
+
+    sLog.outString("Loading Stone level & grade infos ...");
+    sStoneMgr.LoadStoneLevelInfo(true);
+    sStoneMgr.LoadStoneGradeInfo(true);
 
     sAutoTestingMgr->Load();
 
