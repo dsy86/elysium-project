@@ -33,10 +33,7 @@ void ShowStatText(Player *player, Stone* stone, ItemModType statType)
 {
     if (stone->GetStatValue(statType))
     {
-        std::ostringstream stm;
-        stm << _StringToUTF8(statName[statType]) << " + " << stone->GetStatValue(statType);
-        player->ADD_GOSSIP_ITEM(5, stm.str().c_str(), GOSSIP_SENDER_MAIN, ACTION_NONE);
-        stm.clear();
+        player->ADD_GOSSIP_ITEM(5, std::string(_StringToUTF8(statName[statType]) + std::string(" + ") + std::to_string(stone->GetStatValue(statType))).c_str(), GOSSIP_SENDER_MAIN, ACTION_NONE);
     }
 }
 
