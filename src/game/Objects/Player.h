@@ -1150,6 +1150,7 @@ class MANGOS_DLL_SPEC Player final: public Unit
         }
         void SendNewItem( Item *item, uint32 count, bool received, bool created, bool broadcast = false );
         bool BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot);
+        bool BuySpecialItem(uint32 item, uint8 count, uint32 creatureEntry, uint32 currencyItemEntry);
         void OnReceivedItem(Item* item);
 
         float GetReputationPriceDiscount( Creature const* pCreature ) const;

@@ -352,6 +352,7 @@ class MANGOS_DLL_SPEC WorldSession
         void SendTrainerList(ObjectGuid guid, const std::string& strTitle );
 
         void SendListInventory(ObjectGuid guid);
+        void SendListInventory(uint32 creatureEntry, uint32 currencyItemEntry);
         bool CheckBanker(ObjectGuid guid);
         void SendShowBank(ObjectGuid guid);
         bool CheckMailBox(ObjectGuid guid);
@@ -955,6 +956,8 @@ class MANGOS_DLL_SPEC WorldSession
         ClientHashStep  _clientHashComputeStep;
 
         std::set<std::string> _addons;
+        uint32 m_currentVendorEntry;
+        uint32 m_currentCurrencyItemEntry;
 
         /// Clustering system
     public:
@@ -992,6 +995,10 @@ class MANGOS_DLL_SPEC WorldSession
          * @param s
          */
         void LoginPlayerToNode(NodeSession* s);
+        uint32 GetCurrentVendorEntry() const { return m_currentVendorEntry; }
+        uint32 GetCurrentCurrencyItemEntry() const { return m_currentCurrencyItemEntry; }
+        void SetCurrentVendorEntry(uint32 vendorEntry) { m_currentVendorEntry = vendorEntry; }
+        void SetCurrentCurrencyItemEntry(uint32 itemEntry) { m_currentCurrencyItemEntry = itemEntry; }
     protected:
         NodeSession*    m_masterSession;
         NodeSession*    m_nodeSession;
