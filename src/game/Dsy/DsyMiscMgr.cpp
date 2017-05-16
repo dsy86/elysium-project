@@ -49,6 +49,7 @@ void WorldSession::SendListInventory(uint32 creatureEntry, uint32 currencyItemEn
     DEBUG_LOG("WORLD: Sent SMSG_LIST_INVENTORY");
     SetCurrentVendorEntry(creatureEntry);
     SetCurrentCurrencyItemEntry(currencyItemEntry);
+    GetPlayer()->SendMsgHint(_StringToUTF8("此商店使用") + sDsyMiscMgr.GetItemLink(currencyItemEntry) + _StringToUTF8("消费，1金币=1个") + sDsyMiscMgr.GetItemLink(currencyItemEntry));
     // remove fake death
     if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
@@ -186,7 +187,7 @@ bool Player::BuySpecialItem(uint32 item, uint8 count, uint32 creatureEntry, uint
 
     if (!HasItemCount(currencyItemEntry, price))
     {
-        SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, nullptr, item, 0);
+        SendErrorMsgHint(_StringToUTF8("购买需要") + sDsyMiscMgr.GetItemLink(currencyItemEntry) + " * " + std::to_string(price) + _StringToUTF8("，您的道具不足，无法购买"));
         return false;
     }
 
@@ -218,4 +219,140 @@ bool Player::BuySpecialItem(uint32 item, uint8 count, uint32 creatureEntry, uint
     SendNewItem(pItem, totalCount, true, false, false);
 
     return crItem->maxcount != 0;
+}
+
+
+//copy from void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket & recv_data)
+void Player::JoinBattleGround(BattleGroundTypeId bgTypeId, bool joinAsGroup/* = false*/, uint32 instanceId/* = 0*/)
+{
+    ObjectGuid guid = GetObjectGuid();
+    bool queuedAtBGPortal = false;
+    bool isPremade = false;
+    Group * grp;
+
+    queuedAtBGPortal = true;
+
+    if (bgTypeId == BATTLEGROUND_TYPE_NONE)
+    {
+        sLog.outError("Battleground: invalid bgtype (%u) received. possible cheater? player guid %u", bgTypeId, GetGUIDLow());
+        return;
+    }
+    if (bgTypeId == BATTLEGROUND_AV && joinAsGroup)
+    {
+        GetSession()->ProcessAnticheatAction("SAC", "Attempt to queue AV as group.", CHEAT_ACTION_LOG);
+        return;
+    }
+
+    DEBUG_LOG("WORLD: Recvd CMSG_BATTLEMASTER_JOIN Message from %s", guid.GetString().c_str());
+
+    // can do this, since it's battleground, not arena
+    BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId);
+
+    // ignore if player is already in BG
+    if (InBattleGround())
+        return;
+    /*
+    Creature *unit = GetPlayer()->GetMap()->GetCreature(guid);
+    if (!unit)
+    return;
+
+    if (!unit->isBattleMaster())                            // it's not battlemaster
+    return;
+    */
+    // get bg instance or bg template if instance not found
+    BattleGround *bg = NULL;
+    if (instanceId)
+        bg = sBattleGroundMgr.GetBattleGroundThroughClientInstance(instanceId, bgTypeId);
+
+    if (!bg && !(bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId)))
+    {
+        sLog.outError("Battleground: no available bg / template found");
+        return;
+    }
+
+    BattleGroundBracketId bgBracketId = GetBattleGroundBracketIdFromLevel(bgTypeId);
+
+    // check queue conditions
+    if (!joinAsGroup)
+    {
+        // check Deserter debuff
+        if (!CanJoinToBattleground())
+        {
+            WorldPacket data(SMSG_GROUP_JOINED_BATTLEGROUND, 4);
+            data << uint32(0xFFFFFFFE);
+            GetSession()->SendPacket(&data);
+            return;
+        }
+        // check if already in queue
+        if (GetBattleGroundQueueIndex(bgQueueTypeId) < PLAYER_MAX_BATTLEGROUND_QUEUES)
+            //player is already in this queue
+            return;
+        // check if has free queue slots
+        if (!HasFreeBattleGroundQueueId())
+            return;
+    }
+    else
+    {
+        grp = GetGroup();
+        // no group found, error
+        if (!grp)
+            return;
+        uint32 err = grp->CanJoinBattleGroundQueue(bgTypeId, bgQueueTypeId, 0, bg->GetMaxPlayersPerTeam());
+        isPremade = sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_PREMADE_GROUP_WAIT_FOR_MATCH) &&
+            (grp->GetMembersCount() >= sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_PREMADE_QUEUE_GROUP_MIN_SIZE));
+        if (err != BG_JOIN_ERR_OK)
+        {
+            GetSession()->SendBattleGroundJoinError(err);
+            return;
+        }
+    }
+    // if we're here, then the conditions to join a bg are met. We can proceed in joining.
+
+    // GetGroup() was already checked, grp is already initialized
+    BattleGroundQueue& bgQueue = sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId];
+    if (joinAsGroup)
+    {
+        DEBUG_LOG("Battleground: the following players are joining as group:");
+        GroupQueueInfo * ginfo = bgQueue.AddGroup(this, grp, bgTypeId, bgBracketId, isPremade);
+        uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, GetBattleGroundBracketIdFromLevel(bgTypeId));
+        for (GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
+        {
+            Player *member = itr->getSource();
+            if (!member) continue;  // this should never happen
+
+            uint32 queueSlot = member->AddBattleGroundQueueId(bgQueueTypeId);           // add to queue
+
+                                                                                        // store entry point coords
+            member->SetBattleGroundEntryPoint(this, queuedAtBGPortal);
+
+            WorldPacket data;
+            // send status packet (in queue)
+            sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_WAIT_QUEUE, avgTime, 0);
+            member->GetSession()->SendPacket(&data);
+            DEBUG_LOG("Battleground: player joined queue for bg queue type %u bg type %u: GUID %u, NAME %s", bgQueueTypeId, bgTypeId, member->GetGUIDLow(), member->GetName());
+        }
+        DEBUG_LOG("Battleground: group end");
+    }
+    else
+    {
+        GroupQueueInfo * ginfo = bgQueue.AddGroup(this, NULL, bgTypeId, bgBracketId, isPremade);
+        uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, GetBattleGroundBracketIdFromLevel(bgTypeId));
+        // already checked if queueSlot is valid, now just get it
+        uint32 queueSlot = AddBattleGroundQueueId(bgQueueTypeId);
+        // store entry point coords
+        SetBattleGroundEntryPoint(this, queuedAtBGPortal);
+
+        WorldPacket data;
+        // send status packet (in queue)
+        sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_WAIT_QUEUE, avgTime, 0);
+        GetSession()->SendPacket(&data);
+        DEBUG_LOG("Battleground: player joined queue for bg queue type %u bg type %u: GUID %u, NAME %s", bgQueueTypeId, bgTypeId, GetGUIDLow(), GetName());
+    }
+    sBattleGroundMgr.ScheduleQueueUpdate(bgQueueTypeId, bgTypeId, GetBattleGroundBracketIdFromLevel(bgTypeId));
+}
+
+void Player::JoinBattleGround(uint32 mapId, bool joinAsGroup/* = false*/, uint32 instanceId/* = 0*/)
+{
+    BattleGroundTypeId bgTypeId = GetBattleGroundTypeIdByMapId(mapId);
+    JoinBattleGround(bgTypeId, joinAsGroup, instanceId);
 }

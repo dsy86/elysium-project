@@ -10,6 +10,9 @@
 #include "Player.h"
 #include "Weather.h"
 #include "World.h"
+#include "BattleGround.h"
+#include "BattleGroundMgr.h"
+#include "Anticheat.h"
 
 
 class DsyMiscMgr
