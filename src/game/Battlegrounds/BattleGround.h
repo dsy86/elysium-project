@@ -236,6 +236,12 @@ enum BattleGroundJoinError
     BG_JOIN_ERR_GROUP_NOT_ENOUGH = 9
 };
 
+struct RewardItems
+{
+    uint32 item;
+    uint32 count;
+};
+
 class BattleGroundScore
 {
     public:
@@ -309,6 +315,8 @@ class BattleGround
         uint8 GetWinner() const             { return m_Winner; }
         uint32 GetBattlemasterEntry() const;
         uint32 GetBonusHonorFromKill(uint32 kills) const;
+        RewardItems GetWinnerItems() const { return m_WinnerItems; }
+        RewardItems GetLoserItems() const { return m_LoserItems; }
 
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }
@@ -376,6 +384,13 @@ class BattleGround
             Y = m_TeamStartLocY[idx];
             Z = m_TeamStartLocZ[idx];
             O = m_TeamStartLocO[idx];
+        }
+        void SetRewardItems(uint32 winnerItem, uint32 winnerItemCount, uint32 loserItem, uint32 loserItemCount)
+        {
+            m_WinnerItems.item = winnerItem;
+            m_WinnerItems.count = winnerItemCount;
+            m_LoserItems.item = loserItem;
+            m_LoserItems.count = loserItemCount;
         }
 
         /* Packet Transfer */
@@ -581,6 +596,9 @@ class BattleGround
         float m_TeamStartLocY[BG_TEAMS_COUNT];
         float m_TeamStartLocZ[BG_TEAMS_COUNT];
         float m_TeamStartLocO[BG_TEAMS_COUNT];
+        RewardItems m_WinnerItems;
+        RewardItems m_LoserItems;
+
 };
 
 // helper functions for world state list fill

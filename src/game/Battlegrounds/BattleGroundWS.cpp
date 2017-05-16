@@ -189,7 +189,7 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player *Source)
         // Drop Horde Flag from Player
         Source->RemoveAurasDueToSpell(BG_WS_SPELL_WARSONG_FLAG);
         if (GetTeamScore(ALLIANCE) < BG_WS_MAX_TEAM_SCORE)
-            AddPoint(ALLIANCE, 1);
+            AddPoint(ALLIANCE, 10);
         PlaySoundToAll(BG_WS_SOUND_FLAG_CAPTURED_ALLIANCE);
         RewardReputationToTeam(890, m_ReputationCapture, ALLIANCE);
     }
@@ -203,7 +203,7 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player *Source)
         // Drop Alliance Flag from Player
         Source->RemoveAurasDueToSpell(BG_WS_SPELL_SILVERWING_FLAG);
         if (GetTeamScore(HORDE) < BG_WS_MAX_TEAM_SCORE)
-            AddPoint(HORDE, 1);
+            AddPoint(HORDE, 10);
         PlaySoundToAll(BG_WS_SOUND_FLAG_CAPTURED_HORDE);
         RewardReputationToTeam(889, m_ReputationCapture, HORDE);
     }
@@ -557,8 +557,61 @@ void BattleGroundWS::Reset()
     m_HonorEndKills = (isBGWeekend) ? 4 : 2;
 }
 
+void BattleGroundWS::RewardItem(uint32 winner)
+{
+    time_t curTime = time(NULL);
+    tm localTm = *localtime(&curTime);
+    int nowHour = localTm.tm_hour;
+    uint16 timeRate = 1;
+    if (nowHour > 18 && nowHour < 22)
+        timeRate = 3;
+    for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        Team team = itr->second.PlayerTeam;
+
+        Player *player = sObjectMgr.GetPlayer(itr->first);
+        if (!player)
+        {
+            sLog.outError("BattleGround:EndBattleGround %s not found!", itr->first.GetString().c_str());
+            continue;
+        }
+
+        BattleGroundScoreMap::const_iterator itr2 = m_PlayerScores.find(player->GetGUID());
+        if (itr2 != m_PlayerScores.end() &&
+            (itr2->second->KillingBlows +
+                itr2->second->Deaths +
+                itr2->second->HonorableKills +
+                itr2->second->DishonorableKills +
+                itr2->second->BonusHonor +
+                ((BattleGroundWGScore*)itr2->second)->FlagReturns +
+                ((BattleGroundWGScore*)itr2->second)->FlagCaptures
+                ) > 0
+            )// 没造成伤害或者治疗的
+        {
+            if (team == winner)
+            {
+                uint32 item = GetWinnerItems().item;
+                uint32 count = GetWinnerItems().count;
+                if ((item + count) > 0)
+                    player->AddItem(GetWinnerItems().item, GetWinnerItems().count * timeRate); //战歌峡谷胜者战利品
+            }
+            else
+            {
+                uint32 item = GetLoserItems().item;
+                uint32 count = GetLoserItems().count;
+                if ((item + count) > 0)
+                    player->AddItem(GetLoserItems().item, GetLoserItems().count * timeRate); //战歌峡谷失败者战利品，平局则所有人都给失败者的战利品
+            }
+
+        }
+        else
+            player->SendErrorMsgHint(_StringToUTF8("你在本场战斗中未造成任何伤害或者治疗，无法获得任何奖励。"));
+    }
+}
+
 void BattleGroundWS::EndBattleGround(Team winner)
 {
+    RewardItem(winner);
     bool isBGWeekend = BattleGroundMgr::IsBGWeekend(GetTypeID());
     // Completing bonus during holidays. Factions reveive honor, win or lose.
     if (isBGWeekend)
@@ -589,6 +642,12 @@ void BattleGroundWS::HandleKillPlayer(Player *player, Player *killer)
         return;
 
     EventPlayerDroppedFlag(player);
+
+    if (killer && player->GetTeam() != killer->GetTeam())
+    {
+        AddPoint(killer->GetTeam(), 1); //杀人给1分
+        UpdateTeamScore(killer->GetTeam());
+    }
 
     BattleGround::HandleKillPlayer(player, killer);
 }

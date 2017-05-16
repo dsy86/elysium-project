@@ -24,7 +24,7 @@
 
 #include "BattleGround.h"
 
-#define BG_WS_MAX_TEAM_SCORE      3
+#define BG_WS_MAX_TEAM_SCORE      30
 #define BG_WS_FLAG_RESPAWN_TIME   (23*IN_MILLISECONDS)
 #define BG_WS_FLAG_DROP_TIME      (10*IN_MILLISECONDS)
 
@@ -151,6 +151,7 @@ class BattleGroundWS : public BattleGround
         void HandleKillPlayer(Player *player, Player *killer);
         bool SetupBattleGround();
         virtual void Reset();
+        void RewardItem(uint32 winner);
         void EndBattleGround(Team winner);
         virtual WorldSafeLocsEntry const* GetClosestGraveYard(Player* player);
 

@@ -263,6 +263,10 @@ BattleGround::BattleGround()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_WS_START_ONE_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_WS_START_HALF_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_WS_HAS_BEGUN;
+    m_WinnerItems.item = 0;
+    m_WinnerItems.count = 0;
+    m_LoserItems.item = 0;
+    m_LoserItems.count = 0;
 }
 
 BattleGround::~BattleGround()

@@ -1863,6 +1863,8 @@ class MANGOS_DLL_SPEC Player final: public Unit
         bool CanUseBattleGroundObject();
         bool isTotalImmune();
         bool CanCaptureTowerPoint();
+        void JoinBattleGround(uint32 mapId, bool joinAsGroup = false, uint32 instanceId = 0);
+        void JoinBattleGround(BattleGroundTypeId bgTypeId, bool joinAsGroup = false, uint32 instanceId = 0);
 
         /*********************************************************/
         /***               OUTDOOR PVP SYSTEM                  ***/
