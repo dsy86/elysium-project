@@ -704,7 +704,10 @@ void WorldSession::HandleBuyItemInSlotOpcode(WorldPacket & recv_data)
     if (bag == NULL_BAG)
         return;
 
-    GetPlayer()->BuyItemFromVendor(vendorGuid, item, count, bag, bagslot);
+    if (GetCurrentVendorEntry() == 0 || GetCurrentCurrencyItemEntry() == 0)
+        GetPlayer()->BuyItemFromVendor(vendorGuid, item, count, bag, bagslot);
+    else
+        GetPlayer()->BuySpecialItem(item, count, GetCurrentVendorEntry(), GetCurrentCurrencyItemEntry());
 }
 
 void WorldSession::HandleBuyItemOpcode(WorldPacket & recv_data)
@@ -716,7 +719,10 @@ void WorldSession::HandleBuyItemOpcode(WorldPacket & recv_data)
 
     recv_data >> vendorGuid >> item >> count >> unk1;
 
-    GetPlayer()->BuyItemFromVendor(vendorGuid, item, count, NULL_BAG, NULL_SLOT);
+    if (GetCurrentVendorEntry() == 0 || GetCurrentCurrencyItemEntry() == 0)
+        GetPlayer()->BuyItemFromVendor(vendorGuid, item, count, NULL_BAG, NULL_SLOT);
+    else
+        GetPlayer()->BuySpecialItem(item, count, GetCurrentVendorEntry(), GetCurrentCurrencyItemEntry());
 }
 
 void WorldSession::HandleListInventoryOpcode(WorldPacket & recv_data)
@@ -736,6 +742,9 @@ void WorldSession::HandleListInventoryOpcode(WorldPacket & recv_data)
 void WorldSession::SendListInventory(ObjectGuid vendorguid)
 {
     DEBUG_LOG("WORLD: Sent SMSG_LIST_INVENTORY");
+
+    SetCurrentVendorEntry(0);
+    SetCurrentCurrencyItemEntry(0);
 
     Creature *pCreature = GetPlayer()->GetNPCIfCanInteractWith(vendorguid, UNIT_NPC_FLAG_VENDOR);
 
