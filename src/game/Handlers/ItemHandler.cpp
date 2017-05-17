@@ -509,12 +509,14 @@ void WorldSession::HandleSellItemOpcode(WorldPacket & recv_data)
         return;
 
     Creature *pCreature = GetPlayer()->GetNPCIfCanInteractWith(vendorGuid, UNIT_NPC_FLAG_VENDOR);
-    if (!pCreature)
+    if ((GetCurrentVendorEntry() == 0 || GetCurrentCurrencyItemEntry() == 0) && !pCreature)
     {
         DEBUG_LOG("WORLD: HandleSellItemOpcode - %s not found or you can't interact with him.", vendorGuid.GetString().c_str());
         _player->SendSellError(SELL_ERR_CANT_FIND_VENDOR, nullptr, itemGuid, 0);
         return;
     }
+    else
+        pCreature = nullptr;
 
     // remove fake death
     if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))
@@ -620,7 +622,7 @@ void WorldSession::HandleSellItemOpcode(WorldPacket & recv_data)
         _player->AddItemToBuyBackSlot(pItem, money);
     }
 
-    _player->LogModifyMoney(money, "SellItem", pCreature->GetObjectGuid(), pItem->GetEntry());
+    _player->LogModifyMoney(money, "SellItem", pCreature? pCreature->GetObjectGuid() : _player->GetGUID(), pItem->GetEntry());
 }
 
 void WorldSession::HandleBuybackItem(WorldPacket & recv_data)
@@ -632,12 +634,14 @@ void WorldSession::HandleBuybackItem(WorldPacket & recv_data)
     recv_data >> vendorGuid >> slot;
 
     Creature *pCreature = GetPlayer()->GetNPCIfCanInteractWith(vendorGuid, UNIT_NPC_FLAG_VENDOR);
-    if (!pCreature)
+    if ((GetCurrentVendorEntry() == 0 || GetCurrentCurrencyItemEntry() == 0) && !pCreature)
     {
         DEBUG_LOG("WORLD: HandleBuybackItem - %s not found or you can't interact with him.", vendorGuid.GetString().c_str());
         _player->SendSellError(SELL_ERR_CANT_FIND_VENDOR, NULL, ObjectGuid(), 0);
         return;
     }
+    else
+        pCreature = nullptr;
 
     // remove fake death
     if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))

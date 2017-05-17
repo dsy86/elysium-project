@@ -26,7 +26,9 @@ enum Action
     ACTION_ADDLEVEL,
     ACTION_ADDGRADE,
     ACTION_RESETLEVEL,
-    ACTION_RESETGRADE
+    ACTION_RESETGRADE,
+    ACTION_SHOPTEST,
+    ACTION_BATTLEGROUNDTEST
 };
 
 void ShowStatText(Player *player, Stone* stone, ItemModType statType)
@@ -83,6 +85,8 @@ bool StoneMainMenu(Player *player, Item *item)
         player->ADD_GOSSIP_ITEM(5, _StringToUTF8("|cffff6060【阶级已满，无法升阶】|r"), GOSSIP_SENDER_MAIN, ACTION_NONE);
     player->ADD_GOSSIP_ITEM(5, _StringToUTF8("重置等级"), GOSSIP_SENDER_MAIN, ACTION_RESETLEVEL);
     player->ADD_GOSSIP_ITEM(5, _StringToUTF8("重置阶级"), GOSSIP_SENDER_MAIN, ACTION_RESETGRADE);
+    player->ADD_GOSSIP_ITEM(5, _StringToUTF8("商店测试"), GOSSIP_SENDER_MAIN, ACTION_SHOPTEST);
+    player->ADD_GOSSIP_ITEM(5, _StringToUTF8("战场测试"), GOSSIP_SENDER_MAIN, ACTION_BATTLEGROUNDTEST);
 
     player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, item->GetGUID());
     return true;
@@ -115,6 +119,13 @@ bool StoneGossipSelect(Player *player, Item *item, uint32 sender, uint32 action)
         case ACTION_RESETGRADE:
             stone->SetGrade(1);
             player->SendMsgHint(_StringToUTF8("阶级已重置"));
+            break;
+        case ACTION_SHOPTEST:
+            player->GetSession()->SendListInventory(54, 2592);
+            return true;
+            break;
+        case ACTION_BATTLEGROUNDTEST:
+            player->JoinBattleGround(BATTLEGROUND_WS);
             break;
         case ACTION_NONE:
         default:

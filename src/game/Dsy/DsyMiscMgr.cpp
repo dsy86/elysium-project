@@ -21,6 +21,17 @@ std::string DsyMiscMgr::GetItemLink(uint32 entry)
     return oss.str();
 }
 
+std::string DsyMiscMgr::GetItemName(uint32 entry)
+{
+    ItemPrototype const* pItem = ObjectMgr::GetItemPrototype(entry);
+    if (!pItem)
+        return "";
+    std::string name = pItem->Name1;
+    if (ItemLocale const *il = sObjectMgr.GetItemLocale(entry))
+        ObjectMgr::GetLocaleString(il->Name, LOCALE_zhCN, name);
+    return "[" + name + "]";
+}
+
 void Player::SendMsgHint(std::string msg, bool posstive/* = true*/)
 {
     if (msg.length() > 0)
@@ -127,6 +138,7 @@ void WorldSession::SendListInventory(uint32 creatureEntry, uint32 currencyItemEn
     SendPacket(&data);
 }
 
+// copy from bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot)
 bool Player::BuySpecialItem(uint32 item, uint8 count, uint32 creatureEntry, uint32 currencyItemEntry)
 {
     // cheating attempt
@@ -183,11 +195,13 @@ bool Player::BuySpecialItem(uint32 item, uint8 count, uint32 creatureEntry, uint
         return false;
     }
 
-    uint32 price = floor(pProto->BuyPrice / 10000) * count;
+    uint32 price = (uint32)floor(pProto->BuyPrice / 10000);
+    if (price < 1) price = 1;
+    price *= count;
 
     if (!HasItemCount(currencyItemEntry, price))
     {
-        SendErrorMsgHint(_StringToUTF8("购买需要") + sDsyMiscMgr.GetItemLink(currencyItemEntry) + " * " + std::to_string(price) + _StringToUTF8("，您的道具不足，无法购买"));
+        SendErrorMsgHint(_StringToUTF8("购买需要") + sDsyMiscMgr.GetItemName(currencyItemEntry) + " * " + std::to_string(price) + _StringToUTF8("，你的") + sDsyMiscMgr.GetItemName(currencyItemEntry) + _StringToUTF8("不够"));
         return false;
     }
 
