@@ -250,6 +250,7 @@ void Stone::ApplyStoneStats(bool apply, Player* forplayer/* = nullptr*/)
         if (!GetOwner() || GetOwner()->GetTypeId() != TYPEID_PLAYER) return;
         forplayer = GetOwner();
     }
+    if (!forplayer->IsInWorld()) return;
 
     forplayer->HandleStatModifier(UNIT_MOD_HEALTH, BASE_VALUE, float(GetStatValue(ITEM_MOD_HEALTH)), apply);// modify HP
 
